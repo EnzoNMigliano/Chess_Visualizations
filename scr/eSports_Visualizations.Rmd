@@ -1,0 +1,188 @@
+---
+title: "eSports_Visualizations"
+output: html_notebook
+---
+# Introduction {.tabset}
+
+Chess is a classical board game that became a big e-sport game in the recent years. Specially with the pandemic we see more and more games and competitions being hosted online. Therefore, chess is considerate one of the e-sports of the moment with crescent views in streaming websites such as Twitch. In this project, utilized a data from Kaggle that contains more than 20000 thousand games played in the Lichess website. I produced some visualizations to ilustrate some of theinteresting aspects of these 20000 thousand games. I hope you enjoy it!
+
+The data set is available at https://www.kaggle.com/datasnaek/chess.
+
+
+In order to build the visualizations I utilized the package tidyverse (ggplot).
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+chess <- read.csv("games.csv")
+```
+
+## Explorign the data
+
+The data has 20,058 rows (records) and 16 columns(features).
+
+
+```{r}
+chess
+```
+
+```{r}
+View(chess)
+```
+
+
+## Difference in Rating Versus the Winner (rated matches)
+
+In this visualization, we see the winners of the online chess matches and their difference in rating. 
+
+```{r}
+winners_diff <- chess %>%
+  select(rated, winner, white_rating, black_rating) %>% 
+  filter(rated == "TRUE") %>%
+  select(winner, white_rating, black_rating) %>% 
+  mutate(rating_diff = white_rating - black_rating) %>%
+  mutate(rating_diff_class = if_else(rating_diff > 100, "plus_100_eloRating_white",
+                                     if_else(rating_diff < -100, "plus_100_eloRating_black", "even_elo")))
+```
+
+We selected the features winner, white_rating, black_rating. We caculated the difference betweent the ratings and assign them into classes (i.e., even_elo, plus_100_eloRating_white, and plus_100_eloRating_black).
+
+```{r}
+winners_diff
+```
+
+
+
+```{r}
+ggplot(data = winners_diff, mapping = aes(x = rating_diff_class)) +
+  geom_histogram(mapping = aes(fill = winner, colour = winner), stat = "count", position = "dodge") +
+  geom_text(mapping = aes(fill = winner, label =..count..),
+            vjust=-0.5,
+            stat="count",
+            position = position_dodge(width = 0.9)) +
+  ylim(0, max(1800)) +
+  scale_fill_grey(start = 0.2, end = 1) +
+  scale_colour_grey(start = 0.8, end = 0.2) +
+  theme(panel.background = element_rect(fill = "cornsilk"),
+        plot.background = element_rect(fill = "cornsilk3"),
+        legend.background = element_rect(fill = "cornsilk3", colour = NA),
+        panel.grid = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.major.y = element_line( size=.25, color="black" ),
+        plot.title = element_text(hjust = 0.5, size = 16),
+        axis.title.x = element_text(size = 12),
+        axis.title.y = element_text(size = 12)) +
+  labs(title = "Number of Rated Matches Won According to Rating ♞",
+       y = "Number of Wins",
+       x = "Difference in elo Rating",
+       caption = "Source: Kaggle")
+  
+```
+
+```{r}
+rating_outcome_plot <- ggplot(data = winners_diff, mapping = aes(x = rating_diff_class)) +
+  geom_histogram(mapping = aes(fill = winner, colour = winner), stat = "count", position = "dodge") +
+  geom_text(mapping = aes(fill = winner, label =..count..),
+            vjust=-0.5,
+            stat="count",
+            position = position_dodge(width = 0.9)) +
+  ylim(0, max(1800)) +
+  scale_fill_grey(start = 0.2, end = 1) +
+  scale_colour_grey(start = 0.8, end = 0.2) +
+  theme(panel.background = element_rect(fill = "cornsilk"),
+        plot.background = element_rect(fill = "cornsilk3"),
+        legend.background = element_rect(fill = "cornsilk3", colour = NA),
+        panel.grid = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.major.y = element_line( size=.25, color="black" ),
+        plot.title = element_text(hjust = 0.5, size = 16),
+        axis.title.x = element_text(size = 12),
+        axis.title.y = element_text(size = 12)) +
+  labs(title = "Number of Rated Matches Won According to Rating ♞",
+       y = "Number of Wins",
+       x = "Difference in elo Rating",
+       caption = "Source: Kaggle")
+
+ggsave(plot = rating_outcome_plot, file = "rating_outcomeplot.png", height = 8, width = 12)
+```
+
+## Manner of the Win, a comparison between even and uneven elo ratiing
+
+
+```{r}
+victory_status_data <- chess %>%
+  select(rated, white_rating, black_rating, victory_status) %>% 
+  filter(rated == "TRUE") %>%
+  select(white_rating, black_rating, victory_status) %>% 
+  mutate(rating_diff = white_rating - black_rating) %>%
+  mutate(rating_diff_class = if_else(rating_diff > 100, "uneven_elo",
+                                     if_else(rating_diff < -100, "uneven_elo", "even_elo"))) %>%
+  select(victory_status, rating_diff_class)
+```
+
+
+
+```{r}
+victory_status_data
+```
+
+
+
+```{r}
+ggplot(data = victory_status_data, mapping = aes(x = rating_diff_class)) +
+  geom_histogram(mapping = aes(fill = victory_status, colour = victory_status), stat = "count", position = "dodge") +
+  geom_text(mapping = aes(fill = victory_status, label =..count..),
+            vjust=-0.5,
+            stat="count",
+            position = position_dodge(width = 0.9)) +
+  ylim(0, max(2100)) +
+  scale_fill_grey(start = 0.2, end = 1) +
+  scale_colour_grey(start = 0.8, end = 0.2) +
+  theme(panel.background = element_rect(fill = "cornsilk"),
+        plot.background = element_rect(fill = "cornsilk3"),
+        legend.background = element_rect(fill = "cornsilk3", colour = NA),
+        panel.grid = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.major.y = element_line( size=.25, color="black" ),
+        plot.title = element_text(hjust = 0.3, size = 16),
+        axis.title.x = element_text(size = 12),
+        axis.title.y = element_text(size = 12)) +
+  labs(title = "Number of Rated Matches Won According to Victory Status ♞",
+       y = "Number of Wins",
+       x = "Type of elo Rating",
+       caption = "Source: Kaggle")
+```
+
+```{r}
+rating_victory_status_plot <- ggplot(data = victory_status_data, mapping = aes(x = rating_diff_class)) +
+  geom_histogram(mapping = aes(fill = victory_status, colour = victory_status), stat = "count", position = "dodge") +
+  geom_text(mapping = aes(fill = victory_status, label =..count..),
+            vjust=-0.5,
+            stat="count",
+            position = position_dodge(width = 0.9)) +
+  ylim(0, max(2100)) +
+  scale_fill_grey(start = 0.2, end = 1) +
+  scale_colour_grey(start = 0.8, end = 0.2) +
+  theme(panel.background = element_rect(fill = "cornsilk"),
+        plot.background = element_rect(fill = "cornsilk3"),
+        legend.background = element_rect(fill = "cornsilk3", colour = NA),
+        panel.grid = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.major.y = element_line( size=.25, color="black" ),
+        plot.title = element_text(hjust = 0.3, size = 16),
+        axis.title.x = element_text(size = 12),
+        axis.title.y = element_text(size = 12)) +
+  labs(title = "Number of Rated Matches Won According to Victory Status ♞",
+       y = "Number of Wins",
+       x = "Type of elo Rating",
+       caption = "Source: Kaggle")
+
+ggsave(plot = rating_victory_status_plot,
+       filename = "victory_status.png",
+       height = 8,
+       width =  12)
+```
+
