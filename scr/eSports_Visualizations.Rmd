@@ -1,6 +1,0 @@
----
-title: "eSports_Visualizations"
-output: html_notebook
----
-
-# libraries
