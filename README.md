@@ -1,7 +1,5 @@
 # eSports_Visualizations
-Some insightful visualizations of the eSports world 🎮
+Some insightful visualizations of the Chess world done with ggplot2 🎮
 
 
-## Data
 
-## Visualizations
